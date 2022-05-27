@@ -7,7 +7,6 @@ typedef struct {
 	double balance;
 }account;
 
-
 void printAcc(account a) {
 	printf("%d %s %.2lf\n", a.accNum, a.name, a.balance);
 }
@@ -31,27 +30,30 @@ void add(account acc[], int* cnt, FILE* file) {
 
 int findIndexFromName(account acc[], int cnt, char* name) {
 	int index = -1;
-	while (++index<cnt&&strcmp(acc[index].name, name));
-
-	return index<cnt?index:-1;
+	while (++index < cnt && strcmp(acc[index].name, name));
+	return index < cnt ? index : -1;
 }
 
 void search(account acc[], int* cnt, FILE* file) {
 	char name[50];
 	scanf("%s", name);
 	if (findIndexFromName(acc, *cnt, name) != -1)
-		printAcc(acc[findIndexFromName(acc,*cnt,name)]);
+		printAcc(acc[findIndexFromName(acc, *cnt, name)]);
+}
+
+void update(account acc, int index, FILE* file) {
+	printAcc(acc);
+	fseek(file, sizeof(account) * index, SEEK_SET);
+	fwrite(&acc, sizeof(account), 1, file);
 }
 
 void deposit(account acc[], int* cnt, FILE* file) {
 	char name[50];
 	double m;
-	scanf("%s %lf", name,&m);
+	scanf("%s %lf", name, &m);
 	int index = findIndexFromName(acc, *cnt, name);
 	acc[index].balance += m;
-	printAcc(acc[index]);
-	fseek(file, sizeof(account)*index, SEEK_SET);
-	fwrite(&acc[index], sizeof(account), 1, file);
+	update(acc[index], index, file);
 }
 
 void withdraw(account acc[], int* cnt, FILE* file) {
@@ -60,9 +62,7 @@ void withdraw(account acc[], int* cnt, FILE* file) {
 	scanf("%s %lf", name, &m);
 	int index = findIndexFromName(acc, *cnt, name);
 	acc[index].balance -= m;
-	printAcc(acc[index]);
-	fseek(file, sizeof(account) * index, SEEK_SET);
-	fwrite(&acc[index], sizeof(account), 1, file);
+	update(acc[index], index, file);
 }
 
 void printAll(account acc[], int* cnt, FILE* file) {
@@ -80,11 +80,11 @@ void main() {
 	account acc[100] = { 0 };
 	int n, cnt;
 	FILE* file = fopen("bank.bin", "rb+");
-	if(!file)
-		file = fopen("bank.bin", "w");
+	if (!file)
+		file = fopen("bank.bin", "wb");
 	load(&acc, &cnt, file);
-	while (scanf("%d", &n)&&n>0&&n<6)
-		menu[n-1](&acc, &cnt, file);
+	while (scanf("%d", &n) && n > 0 && n < 6)
+		menu[n - 1](&acc, &cnt, file);
 
 	fclose(file);
 }
